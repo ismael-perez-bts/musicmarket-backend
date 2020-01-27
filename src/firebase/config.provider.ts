@@ -24,6 +24,6 @@ export class FirebaseService {
   }
 
   public async verifyUser(token) {
-    return await this.auth.verifyUser(token);
+    return await this.auth.verifyIdToken(token);
   }
 }

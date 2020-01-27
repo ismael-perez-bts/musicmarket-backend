@@ -1,17 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/config.provider';
+import { AWSService } from '../aws/aws.provider';
 import * as itemQueries from '../database/queries/items.queries';
+import * as locationQueries from '../database/queries/locations.queries';
+import * as categoriesQueries from '../database/queries/categories.queries';
+import { S3Image } from '../models/s3-models';
 
 @Injectable()
 export class ItemsService {
 
-  constructor(private databaseService: DatabaseService) {
+  constructor(private databaseService: DatabaseService, private aws: AWSService) {
 
   }
 
+  /**
+   * Service to get items in order by distance. 
+   * @param data 
+   */
   public async getNearItems(data): Promise<any> {
-    let latNum = parseInt(data.latitude);
-    let lngNum = parseInt(data.longitude);
+    let latNum = parseFloat(data.latitude);
+    let lngNum = parseFloat(data.longitude);
     let keywords;
 
     if (data.keywords) {
@@ -24,7 +32,14 @@ export class ItemsService {
     let category = !isNaN(categoryNum) ? parseInt(data.category) : null;
     let conditionNum = parseInt(data.condition);
     let condition = !isNaN(conditionNum) ? parseInt(data.condition) : null;
+    let distanceNum = parseInt(data.distance);
+    let distance = !isNaN(distanceNum) ? distanceNum * 1000 : 10000000;
+    let maxNum = parseInt(data.max);
+    let max = !isNaN(maxNum) ? maxNum : 500000;
+    let minNum = parseInt(data.min);
+    let min = !isNaN(minNum) ? minNum : 0;
     let results;
+    let locationResult;
 
     if (isNaN(latNum) || isNaN(lngNum)) {
       let values = [
@@ -38,22 +53,52 @@ export class ItemsService {
       results = await this.databaseService.client.query(query, values);
     } else {
       let values = [
-        data.latitude || null,
         data.longitude || null,
+        data.latitude || null,
         keywords || null,
         category,
         state,
-        condition
+        condition,
+        distance,
+        max,
+        min
       ];
+
+      let locationValues = [
+        data.longitude || null,
+        data.latitude || null,
+      ];
+
+      let queryLocation = locationQueries.findNearestCity;
+      locationResult = await this.databaseService.client.query(queryLocation, locationValues);
+      locationResult = locationResult.rows[0];
 
       let query = itemQueries.filteredItemsWithLocation;
       results = await this.databaseService.client.query(query, values);
     }
     
-    return results.rows;
+    return { location: locationResult, items: results.rows };
   }
 
-  public async postItem(data):Promise<any> {
+  public async getItemById(id) {
+    let itemId = parseInt(id, 10);
+    console.log('itemId', itemId, id);
+    let results = await this.databaseService.client.query(itemQueries.itemById, [itemId]);
+
+    if (results.rows.length) {
+      return results.rows[0];
+    }
+
+    return null;
+  }
+
+  /**
+   * Service to create a new item for sale.
+   * @param data 
+   * @param uid 
+   * @param imageFile 
+   */
+  public async postItem(data, uid, imageFile):Promise<any> {
     let itemData = {
       title: data.title,
       description: data.description,
@@ -63,16 +108,18 @@ export class ItemsService {
       category: parseInt(data.category),
       state: 1,
       dateCreated: new Date(),
-      latitude: parseInt(data.latitude),
-      longitude: parseInt(data.longitude),
-      tokens: `'${data.title}' || ' ' || '${data.description}'`
+      latitude: parseFloat(data.latitude),
+      longitude: parseFloat(data.longitude),
+      tokens: `'${data.title}' || ' ' || '${data.description}'`,
     };
 
+    let imageData: S3Image = await this.aws.uploadItemImage(imageFile.buffer, uid, imageFile.originalname);
+
     if (isNaN(itemData.condition) || isNaN(itemData.price) || isNaN(itemData.category) || isNaN(itemData.latitude) || isNaN(itemData.longitude)) {
-      throw 'Invalid numberic data. Check all values that should contain a numeric value.';
+      throw 'Invalid numeric data. Check all values that should contain a numeric value.';
     }
 
-    if (!itemData.title || itemData.description) {
+    if (!itemData.title || !itemData.description) {
       throw 'Title and description are required values!';
     }
 
@@ -86,11 +133,23 @@ export class ItemsService {
       itemData.state,
       itemData.latitude, 
       itemData.longitude,
-      itemData.tokens
+      itemData.tokens,
+      uid,
+      imageData.Location
     ];
-    let query = itemQueries.createNewItem;
-    let results = this.databaseService.client.query(query, queryData);
 
-    return results;
+    let query = itemQueries.createNewItem;
+    let results = await this.databaseService.client.query(query, queryData);
+
+    return results.rows[0];
+  }
+
+  /**
+   * Service to get categories.
+   */
+  public async getCategories() {
+    let query = categoriesQueries.getCategories;
+    let results = await this.databaseService.client.query(query);
+    return results.rows;
   }
 }

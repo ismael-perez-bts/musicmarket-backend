@@ -16,6 +16,7 @@ export class SignInController {
   @Post('sign-in')
   async signIn(@Body() data: any): Promise<any> {
     try {
+      console.log('data', data);
       let user = await this.signInService.signInOrCreate(data.idToken)
 
       console.log(user);

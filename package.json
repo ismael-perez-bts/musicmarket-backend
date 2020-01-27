@@ -21,15 +21,19 @@
   },
   "dependencies": {
     "@nestjs/common": "^6.7.2",
+    "@nestjs/config": "^0.1.0",
     "@nestjs/core": "^6.7.2",
     "@nestjs/platform-express": "^6.7.2",
+    "aws-sdk": "^2.603.0",
+    "btoa": "^1.2.1",
     "firebase-admin": "^8.8.0",
     "pg": "^7.14.0",
     "pg-hstore": "^2.3.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "rxjs": "^6.5.3",
-    "sequelize": "^5.21.3"
+    "sequelize": "^5.21.3",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^6.9.0",

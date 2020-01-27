@@ -28,15 +28,13 @@ export class SignInService {
   public async signInOrCreate(idToken: string): Promise<any> {
     try {
       let user = await this.firebaseService.auth.verifyIdToken(idToken);
-      console.log(user);
       let values = userQueries.inserUserKeys.map(key => {
         return user[key] || '';
       });
 
       await this.databaseService.client.query(userQueries.insertUser, values);
 
-      return user;
-      
+      return user; 
     } catch(e) {
 
       console.log(e);
