@@ -76,11 +76,14 @@ export class ItemsController {
   async post(@Body('data') data, @Req() req: ExtendedRequest, @UploadedFile() file): Promise<any> {
 
     try {
+      console.log('test');
+      console.log(req.user);
       let user = req.user;
       let parsedData = JSON.parse(data);
       let result = await this.itemService.postItem(parsedData, user.uid, file);
       return { message: 'success', data: result };
     } catch(e) {
+      console.log(e);
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         error: e

@@ -9,12 +9,14 @@ export class AuthMiddleware implements NestMiddleware {
   constructor(private firebase: FirebaseService) {}
   async use(req: ExtendedRequest, res: Response, next: Function) {
     try {
-      if (req.method === 'GET') {
+      console.log('path: ', req.path);
+      if (req.method === 'GET' && (req.path !== '/api/users/self' && !req.path.match(/chats/gi))) {
         next();
         return;
       }
 
       const user = await this.firebase.verifyUser(req.headers.authorization);
+  
       console.log('USER: ', user);
       if (user) {
         req.user = user;

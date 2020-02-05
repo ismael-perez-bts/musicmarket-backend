@@ -37,7 +37,7 @@ export class LocationsController {
     }
   }
 
-  @Get(':id')
+  @Get('id/:id')
   async getCities(@Param() params): Promise<any> {
     try {
       let stateId = params.id;
@@ -47,6 +47,24 @@ export class LocationsController {
 
     } catch(e) {
       console.log(e);
+      throw new HttpException({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        error: e 
+      }, 500);
+    }
+  }
+
+  @Get('city-by-location')
+  async getCityByLocation(@Query() query): Promise<any> {
+    try {
+      let lat = query.lat;
+      let lng = query.lng;
+
+      let results = await this.locationsService.getStateCityByCoordinates(lat, lng);
+      console.log('results: ', results);
+      return { message: 'success', data: results };
+    } catch (e) {
+      console.log('e', e);
       throw new HttpException({
         status: HttpStatus.INTERNAL_SERVER_ERROR,
         error: e 

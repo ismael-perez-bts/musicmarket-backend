@@ -22,13 +22,16 @@ export const insertCity = `
 
 export const findNearestCity = `
   SELECT 
-    city_name,
-    city_id,
-    state_id,
+    c.city_name,
+    c.city_id,
+    c.state_id,
+    s.id,
+    s.name,
     ST_Distance_Sphere(
       ST_GeomFromText('POINT(' || $1 || ' ' || $2 || ')'), location_center
     ) / 1000 as km
-  FROM cities
+  FROM cities c
+  INNER JOIN states s ON c.state_id = s.id
   ORDER BY KM ASC
   LIMIT 1
 `;

@@ -14,9 +14,6 @@ export class SignInService {
   public async signUp(signInDto: SignInDto): Promise<void> {
     try {
       const user = await this.firebaseService.auth.createUser(signInDto);
-      // 
-      console.log(user);
-
       return user;
     } catch (e) {
 
@@ -32,9 +29,19 @@ export class SignInService {
         return user[key] || '';
       });
 
-      await this.databaseService.client.query(userQueries.insertUser, values);
+      let results = await this.databaseService.client.query(userQueries.getUserByUid, [user.uid]);
 
-      return user; 
+
+      if (results.rows.length) {
+        let data = { ...user, ...results.rows[0] };
+        return data;
+      }
+
+      let insertResults = await this.databaseService.client.query(userQueries.insertUser, values);
+
+      await this.firebaseService.saveUser(insertResults.rows[0].uid, insertResults.rows[0]);
+
+      return { ...user, ...insertResults.rows[0] }; 
     } catch(e) {
 
       console.log(e);

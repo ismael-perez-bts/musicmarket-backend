@@ -1,30 +1,23 @@
 import { Client } from 'pg';
-import { Sequelize } from 'sequelize';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-// export const sequelize = new Sequelize('estore', 'ismaelperez', 'bts123', {
-//   host: 'localhost',
-//   dialect: 'postgres'
-// });
-
-// sequelize
-//   .authenticate()
-//   .then(() => {
-//     console.log('Connection has been established successfully.');
-//   })
-//   .catch(err => {
-//     console.error('Unable to connect to the database:', err);
-//   });
-
+/**
+ * Database service.
+ */
+@Injectable()
 export class DatabaseService {
-  client = new Client({
-    host: '127.0.0.1',
-    port: 5432,
-    database: 'estore',
-    user: 'ismaelperez',
-    password: 'bts123',
-  });
+  public client: Client;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
+    this.client = new Client({
+      host: this.configService.get('DB_HOST'),
+      port: this.configService.get('DB_PORT'),
+      database: this.configService.get('DATABASE'),
+      user: this.configService.get('DB_USER'),
+      password: this.configService.get('DB_PASSWORD'),
+    });
+
     this.client.connect()
     .then(() => {
       console.log('Database is connected');

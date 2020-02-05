@@ -15,6 +15,21 @@ export class LocationsService {
     return results.rows;
   }
 
+  public async getStateCityByCoordinates(lat, lng) {
+    let parsedLat = parseFloat(lat);
+    let parsedLng = parseFloat(lng);
+
+    if (isNaN(parsedLat) || isNaN(parsedLng)) {
+      throw new Error('Not valid coordinates');
+    }
+
+    let queryLocation = locationsQueries.findNearestCity;
+    let locationResult = await this.databaseService.client.query(queryLocation, [parsedLng, parsedLat]);
+    locationResult = locationResult.rows[0];
+    
+    return locationResult;
+  }
+
   public async getState(id) {
     // this.httpService.get(`http://inegifacil.com/cities/${id}`).subscribe(async data => {
     //   console.log('data...', data.data);

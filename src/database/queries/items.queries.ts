@@ -11,8 +11,29 @@
 // `;
 
 export const itemById = `
-  SELECT * FROM items i
+  SELECT 
+    i.id,
+    i.title,
+    i.description,
+    i.condition,
+    i.price,
+    i.state,
+    i.date_created,
+    i.date_updated,
+    i.state_id,
+    i.city_id,
+    i.image_url,
+    u.name as user_name,
+    u.photo_url as user_profile_image,
+    s.name as state_name,
+    c.city_name,
+    cat.label as category_label,
+    cat.id as category_id
+  FROM items i
   INNER JOIN users u ON i.user_uid = u.uid
+  INNER JOIN states s ON i.state_id = s.id
+  INNER JOIN cities c ON ( i.city_id = c.city_id AND i.state_id = c.state_id )
+  INNER JOIN categories cat ON i.category = cat.id
   WHERE i.id = $1
 `;
 
@@ -76,11 +97,35 @@ export const filteredItemsWithLocation = `
 
 export const createNewItem = `
   INSERT INTO items(title, description, condition, price, currency, category, state, 
-    date_created, location, tokens, user_uid, image_url)
+    date_created, location, tokens, user_uid, image_url, city_id, state_id)
   VALUES (
     $1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP,
     ST_GeomFromText('POINT(' || $9 || ' ' || $8 || ')', 4326),
-    to_tsvector('spanish', $10), $11, $12
+    to_tsvector('spanish', $10), $11, $12, $13, $14
   )
   RETURNING id, title, description, condition, price, currency, category, state, date_created, location, user_uid, image_url
+`;
+
+export const itemsByUserUid = `
+  SELECT 
+    i.id,
+    i.title,
+    i.description,
+    i.condition,
+    i.price,
+    i.state,
+    i.date_created,
+    i.date_updated,
+    i.state_id,
+    i.city_id,
+    i.image_url,
+    s.name as state_name,
+    c.city_name,
+    cat.label as category_label,
+    cat.id as category_id
+  FROM items i
+  INNER JOIN states s ON i.state_id = s.id
+  INNER JOIN cities c ON ( i.city_id = c.city_id AND i.state_id = c.state_id )
+  INNER JOIN categories cat ON i.category = cat.id
+  WHERE i.user_uid = $1
 `;

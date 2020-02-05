@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { DatabaseService } from '../database/config.provider';
 import { AWSService } from '../aws/aws.provider';
 import * as itemQueries from '../database/queries/items.queries';
@@ -82,14 +82,13 @@ export class ItemsService {
 
   public async getItemById(id) {
     let itemId = parseInt(id, 10);
-    console.log('itemId', itemId, id);
     let results = await this.databaseService.client.query(itemQueries.itemById, [itemId]);
 
     if (results.rows.length) {
       return results.rows[0];
     }
 
-    return null;
+    throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
   }
 
   /**
@@ -111,11 +110,14 @@ export class ItemsService {
       latitude: parseFloat(data.latitude),
       longitude: parseFloat(data.longitude),
       tokens: `'${data.title}' || ' ' || '${data.description}'`,
+      cityId: parseInt(data.cityId, 10),
+      stateId:  parseInt(data.stateId, 10)
     };
 
     let imageData: S3Image = await this.aws.uploadItemImage(imageFile.buffer, uid, imageFile.originalname);
 
-    if (isNaN(itemData.condition) || isNaN(itemData.price) || isNaN(itemData.category) || isNaN(itemData.latitude) || isNaN(itemData.longitude)) {
+    if (isNaN(itemData.condition) || isNaN(itemData.price) || isNaN(itemData.category) || isNaN(itemData.latitude) || isNaN(itemData.longitude)
+    || isNaN(itemData.cityId) || isNaN(itemData.stateId)) {
       throw 'Invalid numeric data. Check all values that should contain a numeric value.';
     }
 
@@ -135,7 +137,9 @@ export class ItemsService {
       itemData.longitude,
       itemData.tokens,
       uid,
-      imageData.Location
+      imageData.Location,
+      itemData.cityId,
+      itemData.stateId
     ];
 
     let query = itemQueries.createNewItem;
