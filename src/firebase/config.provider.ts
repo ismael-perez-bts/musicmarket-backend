@@ -30,6 +30,7 @@ export class FirebaseService {
    * @param configService NestJS configuration services. Used for env variables.
    */
   constructor(private readonly configService: ConfigService) {
+    console.log(this.configService.get('FIREBASE_DB_URL'));
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount as string | admin.ServiceAccount),
       databaseURL: this.configService.get('FIREBASE_DB_URL')

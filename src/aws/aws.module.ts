@@ -1,11 +1,10 @@
 import { Module, Global } from '@nestjs/common';
 import { AWSService } from './aws.provider';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
-  providers: [ AWSService ],
-  imports: [ ConfigModule.forRoot() ],
+  providers: [ AWSService, ConfigService ],
   exports: [ AWSService ]
 })
 export class AWSModule {

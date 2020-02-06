@@ -26,9 +26,9 @@ import { AuthMiddleware } from './middleware/auth.middleware';
     CategoriesModule,
     UsersModule,
     ChatsModule,
-    ConfigModule.forRoot({ 
-      isGlobal: true ,
-      envFilePath: '.local.env',
+    ConfigModule.forRoot({
+      envFilePath: '.server.env',
+      isGlobal: true
     })
   ],
   controllers: [AppController],
