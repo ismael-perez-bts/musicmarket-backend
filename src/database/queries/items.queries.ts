@@ -25,6 +25,8 @@ export const itemById = `
     i.image_url,
     u.name as user_name,
     u.photo_url as user_profile_image,
+    u.id as user_id,
+    u.uid as user_uid,
     s.name as state_name,
     c.city_name,
     cat.label as category_label,
