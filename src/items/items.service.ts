@@ -13,6 +13,34 @@ export class ItemsService {
 
   }
 
+  private getSearchQueryWithLocation(sortyBy: string) {
+    switch(sortyBy) {
+      case 'recent':
+        return itemQueries.filteredItemsWithLocationSortByRecent;
+      case 'distance':
+        return itemQueries.filteredItemsWithLocationSortByDistance;
+      case 'pricemin':
+        return itemQueries.filteredItemsByPriceMin;
+      case 'pricemax':
+        return itemQueries.filteredItemsByPriceMax;
+      default:
+        return itemQueries.filteredItemsWithLocationSortByRecent;
+    }
+  }
+
+  private getSearchQuery(sortyBy: string) {
+    switch(sortyBy) {
+      case 'recent':
+        return itemQueries.filteredItems;
+      case 'pricemin':
+        return itemQueries.filteredItemsByPriceMin;
+      case 'pricemax':
+        return itemQueries.filteredItemsByPriceMax;
+      default:
+        return itemQueries.filteredItems;
+    }
+  }
+
   /**
    * Service to get items in order by distance. 
    * @param data 
@@ -49,7 +77,7 @@ export class ItemsService {
         condition
       ];
 
-      let query = itemQueries.filteredItems;
+      let query = this.getSearchQuery(data.sortyBy);
       results = await this.databaseService.client.query(query, values);
     } else {
       let values = [
@@ -73,7 +101,7 @@ export class ItemsService {
       locationResult = await this.databaseService.client.query(queryLocation, locationValues);
       locationResult = locationResult.rows[0];
 
-      let query = itemQueries.filteredItemsWithLocation;
+      let query = this.getSearchQueryWithLocation(data.sortyBy);
       results = await this.databaseService.client.query(query, values);
     }
     

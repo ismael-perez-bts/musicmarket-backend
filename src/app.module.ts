@@ -27,7 +27,7 @@ import { AuthMiddleware } from './middleware/auth.middleware';
     UsersModule,
     ChatsModule,
     ConfigModule.forRoot({
-      envFilePath: '.server.env',
+      envFilePath: '.local.env',
       isGlobal: true
     })
   ],

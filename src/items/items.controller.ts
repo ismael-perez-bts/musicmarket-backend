@@ -31,7 +31,8 @@ export class ItemsController {
         condition: query.condition,
         distance: query.distance,
         min: query.min,
-        max: query.max
+        max: query.max,
+        sortBy: query.sortBy
       });
       return results;
     } catch(e) {
